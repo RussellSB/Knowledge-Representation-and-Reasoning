@@ -6,6 +6,7 @@ class Literal:
         self.name = name # Contains the String name of the literal
         self.bool = bool  # Whether literal is true or false
 
+
 # class hornClause for storing clause as an object
 class HornClause:
 
@@ -15,6 +16,7 @@ class HornClause:
 
     def addLiteral(self, literal):
         self.literalList.append(literal)
+
 
 # method that parses text file, and from which it produces a list of horn clauses called "clauseList"
 def textToClauses(fileName):
@@ -63,4 +65,3 @@ def textToClauses(fileName):
 
 
 hcList = textToClauses("clauseStatements.txt")
-print "boop"
