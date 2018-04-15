@@ -64,4 +64,4 @@ def textToClauses(fileName):
     return clauseList  # returns list of horn clauses
 
 
-hcList = textToClauses("clauseStatements.txt")
+hcList = textToClauses("clauseStatements.txt")   # stores all the clauses from "clauseStatements.txt" into hcList
