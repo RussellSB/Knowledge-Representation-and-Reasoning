@@ -61,6 +61,9 @@ def textToClauses(fileName):
         elif (ch.isalpha):
             tempL.name += ch   # concatenates character to literal string name
 
+        else:
+            print "Error: unrecognized character in text file \"%s\""%fileName
+
     return clauseList  # returns list of horn clauses
 
 
