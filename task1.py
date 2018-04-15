@@ -47,11 +47,14 @@ def textToClauses(fileName):
 
         elif (ch == '\n'):
 
+            pass  # condition used to catch '\n' so it doesn't get detected as alphanumeric and put in name attribute
+
+            ''' UNCOMMENT TO PRINT CONTENTS PER CLAUSE
             for i in range(len(tempC.literalList)): # loops through whole literalList of current finished clause
                 print "%s, %s"%(tempC.literalList[i].bool,tempC.literalList[i].name)  # prints True/False, and name
 
             print ""  # skips line for next clause
-
+            '''
 
         elif (ch.isalpha):
             tempL.name += ch   # concatenates character to literal string name
@@ -60,3 +63,4 @@ def textToClauses(fileName):
 
 
 hcList = textToClauses("clauseStatements.txt")
+print "boop"
