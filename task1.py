@@ -27,7 +27,7 @@ def textToKnowledgeBase(fileName):
 
     formula = []  # stores list of clauses, that in turn stores literals
 
-    print "Scanning text file: \n--------\n"
+    print "Scanning text file: \"%s\"\n--------\n"%fileName
 
     # opens file
     f = open(fileName,"r")
@@ -123,7 +123,7 @@ def _resolve(knowledgeBase, query):
                 # checks whether same literal as first literal in query is found, with opposite polarity
                 if (literal.name == query.literalList[0].name) and (literal.polarity != query.literalList[0].polarity):
 
-                    print"Match found in literal: %s, (Query: [!%s])" % (literal.name, query.literalList[0].name)  # out-prints match found
+                    print"Match found in literal: %s, (Query: !%s)" % (literal.name, query.literalList[0].name)  # out-prints match found
 
                     query.literalList.remove(query.literalList[0])  # removes the head of the query
                     _resolve(knowledgeBase, query)  # recursively calls itself with the tail of the query
