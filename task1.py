@@ -1,3 +1,7 @@
+"""
+Task 1: Parsing of Horn Clauses, and Reasoning using Back-Chaining
+"""
+
 # class for literal objects
 class Literal:
 
