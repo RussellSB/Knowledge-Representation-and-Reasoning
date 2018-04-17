@@ -105,7 +105,7 @@ def requestQuery():
 # recursive method that returns whether the query is solvable or unsolvable
 def _resolve(knowledgeBase, query):
 
-    # checks if query at depth is empty
+    # checks if query at depth is empty, if it is then the query is solved
     if(len(query.literalList)==0):
         print "SOLVED"
         return True
@@ -116,21 +116,24 @@ def _resolve(knowledgeBase, query):
         # traverses through literals in clause
         for literal in clause.literalList:
 
-                # checks whether same literal as query is found, with opposite polarity
+                # checks whether same literal as first literal in query is found, with opposite polarity
                 if (literal.name == query.literalList[0].name) and (literal.polarity != query.literalList[0].polarity):
 
-                    print"Found: %s, (Query: %s)" % (literal.name, query.literalList[0].name)
-                    query.literalList.remove(query.literalList[0])
-                    _resolve(knowledgeBase, query)
-                    return True
+                    print"Match found in literal: %s, (Query: [!%s])" % (literal.name, query.literalList[0].name)  # out-prints match found
 
+                    query.literalList.remove(query.literalList[0])  # removes the head of the query
+                    _resolve(knowledgeBase, query)  # recursively calls itself with the tail of the query
+
+                    return True  # returns True for when it backtracks
+
+    # goes through all clauses and finds no literal matches, therefore query is not solved
     print "NOT SOLVED"
     return False
 
 
 hcFormula = textToKnowledgeBase("clauseStatements.txt")   # stores all the clauses from "clauseStatements.txt" into hcFormula
-query = requestQuery()
-_resolve(hcFormula, query)
+query = requestQuery()  # requests for user input then parses user input into a query horn clause
+_resolve(hcFormula, query)  # resolves query with knowlegeBase
 
 
 
