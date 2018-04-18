@@ -109,8 +109,9 @@ def requestQuery():
 # recursive method that returns whether the query is solvable or unsolvable
 def _resolve(knowledgeBase, query):
 
-    # checks if query at depth is empty, if it is then the query is solved
+    # checks if query list at current depth is empty, if it is then the query is solved
     if(len(query.literalList)==0):
+        print"Empty List: %s"%query.literalList
         print "SOLVED"
         return True
 
@@ -120,15 +121,49 @@ def _resolve(knowledgeBase, query):
         # traverses through literals in clause
         for literal in clause.literalList:
 
-                # checks whether same literal as first literal in query is found, with opposite polarity
-                if (literal.name == query.literalList[0].name) and (literal.polarity != query.literalList[0].polarity):
+                # checks whether same literal as last literal in query is found, with opposite polarity
+                if (literal.name == query.literalList[-1].name) and (literal.polarity != query.literalList[-1].polarity):
 
-                    print"Match found in literal: %s, (Query: !%s)" % (literal.name, query.literalList[0].name)  # out-prints match found
+                    # for printing out match with clause from knowledge base with clause from query
+                    print"Match found : [",
 
-                    query.literalList.remove(query.literalList[0])  # removes the head of the query
-                    _resolve(knowledgeBase, query)  # recursively calls itself with the tail of the query
+                    for literal in clause.literalList:
 
-                    return True  # returns True for when it backtracks
+                        if (literal.polarity == True):  # checks whether to print '!' for negation
+                            print"%s"%literal.name,
+                        else:
+                            print"!%s" % literal.name,
+
+                    print "] with Query [",
+
+                    for literal in query.literalList:
+
+                        if (literal.polarity == True):  # checks whether to print '!' for negation
+                            print"%s"%literal.name,
+                        else:
+                            print"!%s" % literal.name,
+
+                    print "]"
+
+                    # when query has one literal
+                    if(len(query.literalList)==1):
+
+                        clauseClone = clause
+                        clauseClone.literalList.remove(clauseClone.literalList[-1])  # removes the last element of the clauseClone
+                        _resolve(knowledgeBase, clauseClone)  # recursively calls itself with the clauseClone as a query
+
+                        return True  # returns True for when it backtracks
+
+                    # when query has more than one literal
+                    elif(len(query.literalList)>1):
+
+                        clauseClone = query
+                        clauseClone.literalList.remove(
+                            clauseClone.literalList[-1])  # removes the last element of the clauseClone
+                        _resolve(knowledgeBase, clauseClone)  # recursively calls itself with the clauseClone as a query
+
+                        return True  # returns True for when it backtracks
+
 
     # goes through all clauses and finds no literal matches, therefore query is not solved
     print "NOT SOLVED"
