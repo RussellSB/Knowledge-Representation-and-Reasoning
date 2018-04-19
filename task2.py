@@ -139,7 +139,7 @@ def searchAll(knowledgeBase, query):
 
     _searchAll(knowledgeBase, currNode, endNode, flag, tempPath)  # calls recursive function
 
-    print "\n-------"
+    print "\n-------\nAll possible paths have been searched.\n"
 
 def _searchAll(knowledgeBase, currNode, endNode, flag, tempPath):
 
@@ -178,7 +178,7 @@ def _searchAll(knowledgeBase, currNode, endNode, flag, tempPath):
             else:
                 print "%s IS-A" % (tempPath[i]),
 
-        tempPath.remove(currNode.name)  # removes currNode from list
+        tempPath.remove(currNode.name)  # remove currNode from list
 
     # traverses through all edges in knowledgeBase
     for edge in knowledgeBase:
@@ -191,7 +191,7 @@ def _searchAll(knowledgeBase, currNode, endNode, flag, tempPath):
 
             _searchAll(knowledgeBase, currNodeClone, endNode, 0, tempPath)
 
-            tempPath.remove(currNode.name)  # remove currNode when back-chaining
+            tempPath.remove(currNode.name)  # remove currNode when back out of the depths
 
         # if match is found and relation is "IS-NOT-A", with previous Relation "IS-A"
         elif (edge.nodeA.name == currNode.name and edge.polarity == False and flag == 0):
@@ -201,7 +201,7 @@ def _searchAll(knowledgeBase, currNode, endNode, flag, tempPath):
 
             _searchAll(knowledgeBase, currNodeClone, endNode, 1, tempPath)
 
-            tempPath.remove(currNode.name)  # remove currNode when back-chaining
+            tempPath.remove(currNode.name)  # remove currNode when back out of the depths
 
 
 edgeList = textToKnowledgeBase("inheritanceNetwork.txt")

@@ -5,3 +5,4 @@
 <RoyalElephant> IS-A <Elephant>
 <RoyalElephant> IS-NOT-A <Gray>
 <Elephant> IS-A <Gray>
+<Gray> IS-A <Colour>
