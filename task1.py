@@ -63,11 +63,11 @@ def textToKnowledgeBase(fileName):
             print ""  # skips line for next clause
 
 
-        elif (ch.isalpha):
+        elif (ch.isalpha()):
             tempL.name += ch   # concatenates character to literal string name
 
         else:
-            print "Error: unrecognized character in text file \"%s\""%fileName
+            print "Error: unrecognized character '%s' in text file \"%s\"" % (ch, fileName)
 
     print "--------\nKnowledge base has been loaded.\n"
 
@@ -97,11 +97,11 @@ def requestQuery():
         elif (ch == ']'):
             queryC.addLiteral(tempL)  # add finished literal to object
 
-        elif (ch.isalpha):
+        elif (ch.isalpha()):
             tempL.name += ch  # concatenates character to literal string name
 
         else:
-            print "Error: unrecognized character in user input string \"%s\"\n" % queryString
+            print "Error: unrecognized character '%s' in String \"%s\"" % (ch, queryString)
 
     return queryC
 
