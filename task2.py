@@ -128,8 +128,8 @@ def requestQuery():
 # method for resolving query by searching for all possible paths in knowledgeBase
 def searchAll(knowledgeBase, query):
 
-    currNode = query.nodeA  # sets node1 as nodeA
-    endNode = query.nodeB  # set endPoint as nodeB
+    currNode = query.nodeA  # sets currNode as nodeA
+    endNode = query.nodeB  # set endNode as nodeB
 
     flag = 0  # flag used for detecting previous edge's relations - 0: IS-A, 1: IS-NOT-A
 
