@@ -77,7 +77,7 @@ def textToKnowledgeBase(fileName):
             if (flag == 0):
                 tempR += ch  # concatenates character to tempR String
 
-    print "--------\nKnowledge Base has been constructed.\n"
+    print "--------\nKnowledge Base has been constructed.\n\n"
 
     return path  # returns list of edges with their corresponding nodes and relations
 
@@ -135,20 +135,18 @@ def searchAll(knowledgeBase, query):
 
     tempPath = []  # list to append nodes names to to describe the path
 
-    pathList_0 = []  # path list for storing node names, with IS-A all throughout
-    pathList_1 = []  # path list for storing node names, with IS-NOT-A at the end
+    pathLists = [[],[]] # two path lists for storing node names, [0] for IS-A throughout, [1] for IS-NOT-A at the end
 
     print "Searching for all possible paths:\n-------\n"
 
-    _searchAll(knowledgeBase, currNode, endNode, flag, tempPath, pathList_0, pathList_1)  # calls recursive function
+    _searchAll(knowledgeBase, currNode, endNode, flag, tempPath, pathLists)  # calls recursive function
 
     print "\n-------\nAll possible paths have been searched.\n"
 
-    print pathList_0
-    print pathList_1
+    return pathLists
 
 
-def _searchAll(knowledgeBase, currNode, endNode, flag, tempPath, pathList_0, pathList_1):
+def _searchAll(knowledgeBase, currNode, endNode, flag, tempPath, pathLists):
 
     # base case: for when last node is reached
     if(currNode.name == endNode.name and flag == 0):
@@ -160,7 +158,7 @@ def _searchAll(knowledgeBase, currNode, endNode, flag, tempPath, pathList_0, pat
         for nodeName in tempPath:
             succPath.append(nodeName)
 
-        pathList_0.append(succPath)  # appends to pathList with IS-A
+        pathLists[0].append(succPath)  # appends to pathList with IS-A
 
         # prints path contents with IS-A at the end
         for i in range(len(tempPath)):
@@ -183,7 +181,7 @@ def _searchAll(knowledgeBase, currNode, endNode, flag, tempPath, pathList_0, pat
         for nodeName in tempPath:
             succPath.append(nodeName)
 
-        pathList_1.append(succPath)  # appends to path list with IS-NOT-A
+        pathLists[1].append(succPath)  # appends to path list with IS-NOT-A
 
         # prints path contents with IS-NOT-A at the end
         for i in range(len(tempPath)):
@@ -210,7 +208,7 @@ def _searchAll(knowledgeBase, currNode, endNode, flag, tempPath, pathList_0, pat
             tempPath.append(currNode.name)  # append to pathList
             currNodeClone = edge.nodeB  # set currNodeClone to nodeB
 
-            _searchAll(knowledgeBase, currNodeClone, endNode, 0, tempPath, pathList_0, pathList_1)
+            _searchAll(knowledgeBase, currNodeClone, endNode, 0, tempPath, pathLists)
 
             tempPath.remove(currNode.name)  # remove currNode when backtracking out of the depths
 
@@ -220,7 +218,7 @@ def _searchAll(knowledgeBase, currNode, endNode, flag, tempPath, pathList_0, pat
             tempPath.append(currNode.name)  # append to pathList
             currNodeClone = edge.nodeB  # set currNodeClone to nodeB
 
-            _searchAll(knowledgeBase, currNodeClone, endNode, 1, tempPath, pathList_0, pathList_1)
+            _searchAll(knowledgeBase, currNodeClone, endNode, 1, tempPath, pathLists)
 
             tempPath.remove(currNode.name)  # remove currNode when backtracking of the depths
 
