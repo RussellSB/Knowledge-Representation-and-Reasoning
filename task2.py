@@ -125,7 +125,7 @@ def requestQuery():
     return queryE
 
 
-# method for resolving query by searching for all possible paths in knowledgeBase
+# method for resolving query by searching for all possible paths in knowledgeBase, returns successful paths
 def searchAll(knowledgeBase, query):
 
     currNode = query.nodeA  # sets currNode as nodeA
@@ -135,18 +135,32 @@ def searchAll(knowledgeBase, query):
 
     tempPath = []  # list to append nodes names to to describe the path
 
+    pathList_0 = []  # path list for storing node names, with IS-A all throughout
+    pathList_1 = []  # path list for storing node names, with IS-NOT-A at the end
+
     print "Searching for all possible paths:\n-------\n"
 
-    _searchAll(knowledgeBase, currNode, endNode, flag, tempPath)  # calls recursive function
+    _searchAll(knowledgeBase, currNode, endNode, flag, tempPath, pathList_0, pathList_1)  # calls recursive function
 
     print "\n-------\nAll possible paths have been searched.\n"
 
-def _searchAll(knowledgeBase, currNode, endNode, flag, tempPath):
+    print pathList_0
+    print pathList_1
 
-    # base cases for when last node is reached
+
+def _searchAll(knowledgeBase, currNode, endNode, flag, tempPath, pathList_0, pathList_1):
+
+    # base case: for when last node is reached
     if(currNode.name == endNode.name and flag == 0):
 
-        tempPath.append(currNode.name) # appends to List
+        tempPath.append(currNode.name)  # appends to List
+        succPath = []  # temporary arrayList to store successful path
+
+        # appends each nodeName to succPath to avoid use of pointers
+        for nodeName in tempPath:
+            succPath.append(nodeName)
+
+        pathList_0.append(succPath)  # appends to pathList with IS-A
 
         # prints path contents with IS-A at the end
         for i in range(len(tempPath)):
@@ -159,10 +173,17 @@ def _searchAll(knowledgeBase, currNode, endNode, flag, tempPath):
 
         tempPath.remove(currNode.name)  # removes currNode from list
 
-    # since its the last step it allows "IS-NOT-A" when flag=1
+    # base case: the last step it allows "IS-NOT-A" when flag=1
     elif(currNode.name == endNode.name and flag == 1):
 
         tempPath.append(currNode.name)  # appends to List
+        succPath = []  # temporary arrayList to store successful path
+
+        # appends each nodeName to succPath to avoid use of pointers
+        for nodeName in tempPath:
+            succPath.append(nodeName)
+
+        pathList_1.append(succPath)  # appends to path list with IS-NOT-A
 
         # prints path contents with IS-NOT-A at the end
         for i in range(len(tempPath)):
@@ -189,9 +210,9 @@ def _searchAll(knowledgeBase, currNode, endNode, flag, tempPath):
             tempPath.append(currNode.name)  # append to pathList
             currNodeClone = edge.nodeB  # set currNodeClone to nodeB
 
-            _searchAll(knowledgeBase, currNodeClone, endNode, 0, tempPath)
+            _searchAll(knowledgeBase, currNodeClone, endNode, 0, tempPath, pathList_0, pathList_1)
 
-            tempPath.remove(currNode.name)  # remove currNode when back out of the depths
+            tempPath.remove(currNode.name)  # remove currNode when backtracking out of the depths
 
         # if match is found and relation is "IS-NOT-A", with previous Relation "IS-A"
         elif (edge.nodeA.name == currNode.name and edge.polarity == False and flag == 0):
@@ -199,13 +220,14 @@ def _searchAll(knowledgeBase, currNode, endNode, flag, tempPath):
             tempPath.append(currNode.name)  # append to pathList
             currNodeClone = edge.nodeB  # set currNodeClone to nodeB
 
-            _searchAll(knowledgeBase, currNodeClone, endNode, 1, tempPath)
+            _searchAll(knowledgeBase, currNodeClone, endNode, 1, tempPath, pathList_0, pathList_1)
 
-            tempPath.remove(currNode.name)  # remove currNode when back out of the depths
+            tempPath.remove(currNode.name)  # remove currNode when backtracking of the depths
+
 
 
 edgeList = textToKnowledgeBase("inheritanceNetwork.txt")
 query = requestQuery()  # requests for user input then parses user input into a query horn clause
-searchAll(edgeList, query)
+pathList = searchAll(edgeList, query)
 
 
