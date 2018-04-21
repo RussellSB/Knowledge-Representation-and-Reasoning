@@ -28,19 +28,20 @@ class Edge:
         self.polarity = polarity
 
 
+# stored nodeNames rather than edges as paths because working with discrete information made things more efficient
 # class for path, stores list of nodeNames to indicate edges, and stores whether of type IS-A all throughout, or IS-NOT-A
 class Path:
 
     def __init__(self, pathList, type):
         self.pathList = pathList  # stores list of nodeNames
         self.type = type  # stores True for IS-A all through out, False for IS-NOT-A at the end
-        self.len = len(pathList)  # stores length of pathList
+        self.len = len(pathList)-1  # stores length of path (each edge is length 1)
 
 
 # method for parsing from text file to objects that make an Inheritence Network
 def textToKnowledgeBase(fileName):
 
-    path = []  # stores a sequence of edges in object form
+    edgeList = []  # stores a sequence of edges in object form
 
     print "Scanning text file: \"%s\"\n--------\n" % fileName
 
@@ -78,7 +79,7 @@ def textToKnowledgeBase(fileName):
                 elif(tempR == ' IS-NOT-A '):
                     tempE.polarity = False  # set polarity to False as "IS-NOT-A"
 
-                path.append(tempE)  # appends edge as at the end of the line
+                edgeList.append(tempE)  # appends edge as at the end of the line
 
                 print "%s --%s--> %s\n"%(tempE.nodeA.name, tempE.polarity, tempE.nodeB.name)
 
@@ -91,7 +92,7 @@ def textToKnowledgeBase(fileName):
 
     print "--------\nKnowledge Base has been constructed.\n\n"
 
-    return path  # returns list of edges with their corresponding nodes and relations
+    return edgeList  # returns list of edges with their corresponding nodes and relations
 
 
 # method for requesting and parsing a query into an edge
@@ -136,36 +137,36 @@ def requestQuery():
 
     return queryE
 
-# method for printing path, being a list of nodeNames
-def printPath(tempPath, type):
 
-    if (type == True):
+# method for printing path, being a list of nodeNames
+def printPath(path):
+
+    if (path.type == True):
 
         # prints path contents with IS-A at the end
-        for i in range(len(tempPath)):
+        for i in range(len(path.pathList)):
 
             # when i is at the last node in the path
-            if (i == len(tempPath) - 1):
-                print "%s" % tempPath[i]
+            if (i == len(path.pathList) - 1):
+                print "%s" % path.pathList[i]
             else:
-                print "%s IS-A" % (tempPath[i]),
+                print "%s IS-A" % (path.pathList[i]),
 
     else:
 
         # prints path contents with IS-NOT-A at the end
-        for i in range(len(tempPath)):
+        for i in range(len(path.pathList)):
 
             # when i is at the last node in the path
-            if (i == len(tempPath) - 1):
-                print "%s" % tempPath[i]
+            if (i == len(path.pathList) - 1):
+                print "%s" % path.pathList[i]
 
             # when i is at the one before the last node in the path
-            elif (i == len(tempPath) - 2):
-                print "%s IS-NOT-A" % (tempPath[i]),
+            elif (i == len(path.pathList) - 2):
+                print "%s IS-NOT-A" % (path.pathList[i]),
 
             else:
-                print "%s IS-A" % (tempPath[i]),
-
+                print "%s IS-A" % (path.pathList[i]),
 
 
 # method for resolving query by searching for all possible paths in knowledgeBase, returns successful paths
@@ -204,7 +205,7 @@ def _searchAll(knowledgeBase, currNode, endNode, flag, tempPath, pathObjList):
         path = Path(succPath, True)
         pathObjList.append(path)  # appends path to pathList with IS-A
 
-        printPath(succPath, True)  # prints current successful path
+        printPath(path)  # prints current successful path
 
         tempPath.remove(currNode.name)  # removes currNode from list
 
@@ -221,7 +222,7 @@ def _searchAll(knowledgeBase, currNode, endNode, flag, tempPath, pathObjList):
         path = Path(succPath, False)
         pathObjList.append(path)  # appends path to pathList with IS-NOT-A
 
-        printPath(succPath, False)  # prints current successful path
+        printPath(path)  # prints current successful path
 
         tempPath.remove(currNode.name)  # remove currNode from list
 
@@ -249,69 +250,28 @@ def _searchAll(knowledgeBase, currNode, endNode, flag, tempPath, pathObjList):
             tempPath.remove(currNode.name)  # remove currNode when backtracking of the depths
 
 
-# recursive method for sorting paths by length using quick sort
-def sortByLength(objList):
-
-    #base case for when segment's length is less than or equal to one
-    if(len(objList)<=1):
-        return objList
-
-    smaller = []  # initialized for storing the smaller segment of the list
-    equivalent = []  # initialized for storing the element at the pivot
-    greater = []  # initialized for storing the greater segment of the list
-
-    #randomly chosen pivot selected from list of paths
-    pivot = objList[random.randint(0, len(objList)-1)]
-
-    #for loop to go through the list of paths
-    for x in objList:
-
-        #when x is less, append to smaller segment
-        if(x.len < pivot.len):
-            smaller.append(x)
-
-        #when x is at the pivot, store element into equivalent
-        elif(x.len==pivot.len):
-            equivalent.append(x)
-
-        #when x is greater, append to greater segment
-        elif(x.len > pivot.len):
-            greater.append(x)
-
-        else:
-            print("An unknown error has occurred during sorting by Path")
-
-    #recursively calls method to work on the smaller and greater segment, then returns on backtracking
-    return sortByLength(smaller) + equivalent + sortByLength(greater)
-
-
 def shortestPath(pathObjList):
 
     print "Preferred by shortest distance metric:\n-------"
 
-    pathObjList_S = sortByLength(pathObjList)  # sorted path object list
+    shortestPaths = [pathObjList[0]]  # list for storing one or more paths of shortest length, starts from the first
 
-    for i in range(len(pathObjList)):
+    # traverses through paths in pathObjList starting from the second one
+    for i in range(1, len(pathObjList)):
 
-        # if next path is also the shortest, print current then move on to that to print also
-        if(pathObjList_S[i].len == pathObjList_S[i+1].len):
+        # if current path is less than previous
+        if (pathObjList[i].len < pathObjList[i-1].len):
 
-            if(pathObjList_S[i].type == True):
-                printPath(pathObjList_S[i].pathList, True)  # prints path with IS-A
+            shortestPaths = []  # clear for new shortest length
+            shortestPaths.append(pathObjList[i])  # append new shortest path to shortestPaths list
 
-            else:
-                printPath(pathObjList_S[i].pathList, False)  # prints path with IS-NOT-A
+        # else if current path is the same as previous
+        elif (pathObjList[i].len == pathObjList[i-1].len):
+            shortestPaths.append(pathObjList[i])  # append same length path to shortestPaths list
 
-        # when at the last shortest path, print last path then break the loop
-        else:
-
-            if (pathObjList_S[i].type == True):
-                printPath(pathObjList_S[i].pathList, True)  # prints path with IS-A
-
-            else:
-                printPath(pathObjList_S[i].pathList, False)  # prints path with IS-NOT-A
-
-            break
+    # prints all the shortest paths
+    for shortPath in shortestPaths:
+        printPath(shortPath)
 
 
 def inferentialPath(pathList):
@@ -320,7 +280,7 @@ def inferentialPath(pathList):
 
 
 edgeList = textToKnowledgeBase("inheritanceNetwork.txt")
-query = requestQuery()  # requests for user input then parses user input into a query horn clause
+query = requestQuery()
 pathObjList = searchAll(edgeList, query)
 shortestPath(pathObjList)
 inferentialPath(pathObjList)
