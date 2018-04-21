@@ -1,6 +1,9 @@
 """
 Task 2: Construction and Reasoning with Inheritence Networks
 """
+
+import random #used for choosing random pivot
+
 # class for node, stores name as an attribute
 class Node:
 
@@ -23,6 +26,14 @@ class Edge:
 
     def polarity(self, polarity):
         self.polarity = polarity
+
+# class for path, stores list of nodeNames to indicate edges, and stores whether of type IS-A all throughout, or IS-NOT-A
+class Path:
+
+    def __init__(self, pathList, type):
+        self.pathList = pathList  # stores list of nodeNames
+        self.type = type  # stores True for IS-A all through out, False for IS-NOT-A at the end
+        self.len = len(pathList)  # stores length of pathList
 
 
 # method for parsing from text file to objects that make an Inheritence Network
@@ -133,20 +144,20 @@ def searchAll(knowledgeBase, query):
 
     flag = 0  # flag used for detecting previous edge's relations - 0: IS-A, 1: IS-NOT-A
 
-    tempPath = []  # list to append nodes names to to describe the path
+    tempPath = []  # list to append string nodes names to to describe the path
 
-    pathLists = [[],[]] # two path lists for storing node names, [0] for IS-A throughout, [1] for IS-NOT-A at the end
+    pathObjList = [] # path list to store successful object paths
 
     print "Searching for all possible paths:\n-------\n"
 
-    _searchAll(knowledgeBase, currNode, endNode, flag, tempPath, pathLists)  # calls recursive function
+    _searchAll(knowledgeBase, currNode, endNode, flag, tempPath, pathObjList)  # calls recursive function
 
-    print "\n-------\nAll possible paths have been searched.\n"
+    print "\n-------\nAll possible paths have been searched.\n\n"
 
-    return pathLists
+    return pathObjList
 
 
-def _searchAll(knowledgeBase, currNode, endNode, flag, tempPath, pathLists):
+def _searchAll(knowledgeBase, currNode, endNode, flag, tempPath, pathObjList):
 
     # base case: for when last node is reached
     if(currNode.name == endNode.name and flag == 0):
@@ -154,11 +165,12 @@ def _searchAll(knowledgeBase, currNode, endNode, flag, tempPath, pathLists):
         tempPath.append(currNode.name)  # appends to List
         succPath = []  # temporary arrayList to store successful path
 
-        # appends each nodeName to succPath to avoid use of pointers
+        # appends each nodeName to succPath to avoid pointer interference
         for nodeName in tempPath:
             succPath.append(nodeName)
 
-        pathLists[0].append(succPath)  # appends to pathList with IS-A
+        path = Path(succPath, True)
+        pathObjList.append(path)  # appends path to pathList with IS-A
 
         # prints path contents with IS-A at the end
         for i in range(len(tempPath)):
@@ -181,7 +193,8 @@ def _searchAll(knowledgeBase, currNode, endNode, flag, tempPath, pathLists):
         for nodeName in tempPath:
             succPath.append(nodeName)
 
-        pathLists[1].append(succPath)  # appends to path list with IS-NOT-A
+        path = Path(succPath, False)
+        pathObjList.append(path)  # appends path to pathList with IS-NOT-A
 
         # prints path contents with IS-NOT-A at the end
         for i in range(len(tempPath)):
@@ -208,7 +221,7 @@ def _searchAll(knowledgeBase, currNode, endNode, flag, tempPath, pathLists):
             tempPath.append(currNode.name)  # append to pathList
             currNodeClone = edge.nodeB  # set currNodeClone to nodeB
 
-            _searchAll(knowledgeBase, currNodeClone, endNode, 0, tempPath, pathLists)
+            _searchAll(knowledgeBase, currNodeClone, endNode, 0, tempPath, pathObjList)
 
             tempPath.remove(currNode.name)  # remove currNode when backtracking out of the depths
 
@@ -218,14 +231,80 @@ def _searchAll(knowledgeBase, currNode, endNode, flag, tempPath, pathLists):
             tempPath.append(currNode.name)  # append to pathList
             currNodeClone = edge.nodeB  # set currNodeClone to nodeB
 
-            _searchAll(knowledgeBase, currNodeClone, endNode, 1, tempPath, pathLists)
+            _searchAll(knowledgeBase, currNodeClone, endNode, 1, tempPath, pathObjList)
 
             tempPath.remove(currNode.name)  # remove currNode when backtracking of the depths
 
 
+#recursive method for sorting paths by length using quick sort
+def sortByLength(objList):
+
+    #base case for when segment's length is less than or equal to one
+    if(len(objList)<=1):
+        return objList
+
+    smaller=[] #initialized for storing the smaller segment of the list
+    equivalent=[] #initialized for storing the element at the pivot
+    greater=[] #initialized for storing the greater segment of the list
+
+    #randomly chosen pivot selected from list of paths
+    pivot = objList[random.randint(0,len(objList)-1)]
+
+    #for loop to go through the list of paths
+    for x in objList:
+
+        #when x is less, append to smaller segment
+        if(x.len < pivot.len):
+            smaller.append(x)
+
+        #when x is at the pivot, store element into equivalent
+        elif(x.len==pivot.len):
+            equivalent.append(x)
+
+        #when x is greater, append to greater segment
+        elif(x.len > pivot.len):
+            greater.append(x)
+
+        else:
+            print("An unknown error has occurred during sorting by Path")
+
+    #recursively calls method to work on the smaller and greater segment, then returns on backtracking
+    return sortByLength(smaller) + equivalent + sortByLength(greater)
+
+
+def shortestPath(pathObjList):
+
+    print "Preferred by shortest distance metric:\n-------"
+
+    sortByLength(pathObjList)
+
+    for i in range(len(pathObjList)):
+
+        # if next path is also the shortest, move on to that to print also
+        if(pathObjList[i].len == pathObjList[i+1]):
+
+            if(pathObjList[i].type == True):
+
+                # make print pathlist, make sep function
+
+            else:
+
+                # make print pathlist, make sep function
+
+        # when at the last shortest path, break the loop
+        else:
+            break
+
+
+def inferentialPath(pathList):
+
+    print "TO DO ;)"
+
 
 edgeList = textToKnowledgeBase("inheritanceNetwork.txt")
 query = requestQuery()  # requests for user input then parses user input into a query horn clause
-pathList = searchAll(edgeList, query)
+pathObjList = searchAll(edgeList, query)
+shortestPath(pathObjList)
+inferentialPath(pathObjList)
 
 
