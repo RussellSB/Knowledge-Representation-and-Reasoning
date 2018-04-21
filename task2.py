@@ -2,7 +2,7 @@
 Task 2: Construction and Reasoning with Inheritence Networks
 """
 
-import random #used for choosing random pivot
+import random  # used for choosing random pivot
 
 # class for node, stores name as an attribute
 class Node:
@@ -26,6 +26,7 @@ class Edge:
 
     def polarity(self, polarity):
         self.polarity = polarity
+
 
 # class for path, stores list of nodeNames to indicate edges, and stores whether of type IS-A all throughout, or IS-NOT-A
 class Path:
@@ -135,6 +136,37 @@ def requestQuery():
 
     return queryE
 
+# method for printing path, being a list of nodeNames
+def printPath(tempPath, type):
+
+    if (type == True):
+
+        # prints path contents with IS-A at the end
+        for i in range(len(tempPath)):
+
+            # when i is at the last node in the path
+            if (i == len(tempPath) - 1):
+                print "%s" % tempPath[i]
+            else:
+                print "%s IS-A" % (tempPath[i]),
+
+    else:
+
+        # prints path contents with IS-NOT-A at the end
+        for i in range(len(tempPath)):
+
+            # when i is at the last node in the path
+            if (i == len(tempPath) - 1):
+                print "%s" % tempPath[i]
+
+            # when i is at the one before the last node in the path
+            elif (i == len(tempPath) - 2):
+                print "%s IS-NOT-A" % (tempPath[i]),
+
+            else:
+                print "%s IS-A" % (tempPath[i]),
+
+
 
 # method for resolving query by searching for all possible paths in knowledgeBase, returns successful paths
 def searchAll(knowledgeBase, query):
@@ -172,14 +204,7 @@ def _searchAll(knowledgeBase, currNode, endNode, flag, tempPath, pathObjList):
         path = Path(succPath, True)
         pathObjList.append(path)  # appends path to pathList with IS-A
 
-        # prints path contents with IS-A at the end
-        for i in range(len(tempPath)):
-
-            # when i is at the last node in the path
-            if(i == len(tempPath)-1):
-                print "%s"%tempPath[i]
-            else:
-                print "%s IS-A" % (tempPath[i]),
+        printPath(succPath, True)  # prints current successful path
 
         tempPath.remove(currNode.name)  # removes currNode from list
 
@@ -196,19 +221,7 @@ def _searchAll(knowledgeBase, currNode, endNode, flag, tempPath, pathObjList):
         path = Path(succPath, False)
         pathObjList.append(path)  # appends path to pathList with IS-NOT-A
 
-        # prints path contents with IS-NOT-A at the end
-        for i in range(len(tempPath)):
-
-            # when i is at the last node in the path
-            if (i == len(tempPath)-1):
-                print "%s" % tempPath[i]
-
-            # when i is at the one before the last node in the path
-            elif(i == len(tempPath)-2):
-                print "%s IS-NOT-A" % (tempPath[i]),
-
-            else:
-                print "%s IS-A" % (tempPath[i]),
+        printPath(succPath, False)  # prints current successful path
 
         tempPath.remove(currNode.name)  # remove currNode from list
 
@@ -236,19 +249,19 @@ def _searchAll(knowledgeBase, currNode, endNode, flag, tempPath, pathObjList):
             tempPath.remove(currNode.name)  # remove currNode when backtracking of the depths
 
 
-#recursive method for sorting paths by length using quick sort
+# recursive method for sorting paths by length using quick sort
 def sortByLength(objList):
 
     #base case for when segment's length is less than or equal to one
     if(len(objList)<=1):
         return objList
 
-    smaller=[] #initialized for storing the smaller segment of the list
-    equivalent=[] #initialized for storing the element at the pivot
-    greater=[] #initialized for storing the greater segment of the list
+    smaller = []  # initialized for storing the smaller segment of the list
+    equivalent = []  # initialized for storing the element at the pivot
+    greater = []  # initialized for storing the greater segment of the list
 
     #randomly chosen pivot selected from list of paths
-    pivot = objList[random.randint(0,len(objList)-1)]
+    pivot = objList[random.randint(0, len(objList)-1)]
 
     #for loop to go through the list of paths
     for x in objList:
@@ -276,23 +289,28 @@ def shortestPath(pathObjList):
 
     print "Preferred by shortest distance metric:\n-------"
 
-    sortByLength(pathObjList)
+    pathObjList_S = sortByLength(pathObjList)  # sorted path object list
 
     for i in range(len(pathObjList)):
 
-        # if next path is also the shortest, move on to that to print also
-        if(pathObjList[i].len == pathObjList[i+1]):
+        # if next path is also the shortest, print current then move on to that to print also
+        if(pathObjList_S[i].len == pathObjList_S[i+1].len):
 
-            if(pathObjList[i].type == True):
-
-                # make print pathlist, make sep function
+            if(pathObjList_S[i].type == True):
+                printPath(pathObjList_S[i].pathList, True)  # prints path with IS-A
 
             else:
+                printPath(pathObjList_S[i].pathList, False)  # prints path with IS-NOT-A
 
-                # make print pathlist, make sep function
-
-        # when at the last shortest path, break the loop
+        # when at the last shortest path, print last path then break the loop
         else:
+
+            if (pathObjList_S[i].type == True):
+                printPath(pathObjList_S[i].pathList, True)  # prints path with IS-A
+
+            else:
+                printPath(pathObjList_S[i].pathList, False)  # prints path with IS-NOT-A
+
             break
 
 
