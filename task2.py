@@ -2,7 +2,6 @@
 Task 2: Construction and Reasoning with Inheritence Networks
 """
 
-import random  # used for choosing random pivot
 
 # class for node, stores name as an attribute
 class Node:
@@ -239,7 +238,6 @@ def _searchAll(knowledgeBase, currNode, endNode, flag, tempPath, pathObjList):
             tempPath.remove(edge)  # remove current edge when backtracking of the depths
 
 
-'''
 # method for printing back the shortest path/s from all possible paths
 def shortestPath(pathObjList):
 
@@ -266,50 +264,14 @@ def shortestPath(pathObjList):
 
     return shortestPaths
 
+'''
 # method for printing back inferential path from all possible paths
 def inferentialPath(pathObjList):
-
-    print "\n\nPreferred by inferential distance metric:\n-------"
-
-    pathA = pathObjList[len(pathObjList) - 1]  # pathA is the last path in the currPathObjList
-
-    _inferentialPath(pathObjList, pathA)
-
-
-def _inferentialPath(currPathObjList, pathA):
-
-    # base case that when there is only one path left in the list print it as the preferred inferential path
-    if (len(currPathObjList) == 1):
-
-        printPath(currPathObjList[0])
-        return
-
-    # for nodes in the current path, pathA.pathList, (excluding starting node and end node)
-    for i in range(1, len(pathA.pathList) - 1):
-
-        nodeA = pathA.pathList[i]
-
-        # for pathB to compare with pathA from current path object list
-        for pathB in currPathObjList:
-
-            # if they are not the same path
-            if (pathB != pathA):
-
-                # for nodes in the secondary path, pathB.pathList, (excluding starting node and end node)
-                for j in range(1, len(pathB.pathList) - 1):
-
-                    nodeB = pathB.pathList[j]
-
-                    # if
-                    if (nodeA == nodeB)
-
-    return
 
 '''
 
 edgeList = textToKnowledgeBase("inheritanceNetwork.txt")  # converts text to knowledgeBase
 query = requestQuery()  # request user for string query then stores it in an edge object
 pathObjList = searchAll(edgeList, query)  # searches for all possible paths posed by the query
-
-# shortestPath(pathObjList)  # shows preferred path/s by shortest distance metric
+shortestPath(pathObjList)  # shows preferred path/s by shortest distance metric
 # inferentialPath(pathObjList)  # shows preferred path if any by inferential distance metric
