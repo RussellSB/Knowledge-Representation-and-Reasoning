@@ -33,9 +33,9 @@ class Edge:
 class Path:
 
     def __init__(self, pathList, type):
-        self.pathList = pathList  # stores list of nodeNames
+        self.pathList = pathList  # stores list of edges
         self.type = type  # stores True for IS-A all through out, False for IS-NOT-A at the end
-        self.len = len(pathList)-1  # stores length of path (each edge is length 1)
+        self.len = len(pathList)  # stores length of path (each edge is length 1)
 
 
 # method for parsing from text file to objects that make an Inheritence Network
@@ -138,7 +138,7 @@ def requestQuery():
     return queryE
 
 
-# method for printing path, being a list of nodeNames
+# method for printing path, being a list of edges
 def printPath(path):
 
     if (path.type == True):
@@ -146,27 +146,22 @@ def printPath(path):
         # prints path contents with IS-A at the end
         for i in range(len(path.pathList)):
 
-            # when i is at the last node in the path
+            # when i is at the last edge in the path
             if (i == len(path.pathList) - 1):
-                print "%s" % path.pathList[i]
+                print "%s IS-A %s" % (path.pathList[i].nodeA.name, path.pathList[i].nodeB.name)
             else:
-                print "%s IS-A" % (path.pathList[i]),
+                print "%s IS-A" % (path.pathList[i].nodeA.name),
 
     else:
 
         # prints path contents with IS-NOT-A at the end
         for i in range(len(path.pathList)):
 
-            # when i is at the last node in the path
+            # when i is at the last edge in the path
             if (i == len(path.pathList) - 1):
-                print "%s" % path.pathList[i]
-
-            # when i is at the one before the last node in the path
-            elif (i == len(path.pathList) - 2):
-                print "%s IS-NOT-A" % (path.pathList[i]),
-
+                print "%s IS-NOT-A %s" % (path.pathList[i].nodeA.name, path.pathList[i].nodeB.name)
             else:
-                print "%s IS-A" % (path.pathList[i]),
+                print "%s IS-A" % (path.pathList[i].nodeA.name),
 
 
 # method for resolving query by searching for all possible paths in knowledgeBase, returns successful paths
@@ -177,9 +172,9 @@ def searchAll(knowledgeBase, query):
 
     flag = 0  # flag used for detecting previous edge's relations - 0: IS-A, 1: IS-NOT-A
 
-    tempPath = []  # list to append string nodes names to to describe the path
+    tempPath = []  # list to append edges to to describe the path
 
-    pathObjList = [] # path list to store successful object paths
+    pathObjList = []  # path list to store successful object paths
 
     print "Searching for all possible paths:\n-------\n"
 
@@ -195,36 +190,30 @@ def _searchAll(knowledgeBase, currNode, endNode, flag, tempPath, pathObjList):
     # base case: for when last node is reached
     if(currNode.name == endNode.name and flag == 0):
 
-        tempPath.append(currNode.name)  # appends to List
         succPath = []  # temporary arrayList to store successful path
 
-        # appends each nodeName to succPath to avoid pointer interference
-        for nodeName in tempPath:
-            succPath.append(nodeName)
+        # appends each edge to succPath to avoid pointer interference
+        for edge in tempPath:
+            succPath.append(edge)
 
-        path = Path(succPath, True)
+        path = Path(succPath, True)  # sets path object to to succPath, polarity True
         pathObjList.append(path)  # appends path to pathList with IS-A
 
         printPath(path)  # prints current successful path
 
-        tempPath.remove(currNode.name)  # removes currNode from list
-
     # base case: the last step it allows "IS-NOT-A" when flag=1
     elif(currNode.name == endNode.name and flag == 1):
 
-        tempPath.append(currNode.name)  # appends to List
         succPath = []  # temporary arrayList to store successful path
 
         # appends each nodeName to succPath to avoid use of pointers
-        for nodeName in tempPath:
-            succPath.append(nodeName)
+        for edge in tempPath:
+            succPath.append(edge)
 
-        path = Path(succPath, False)
+        path = Path(succPath, False)  # sets path object to succPath, polarity False
         pathObjList.append(path)  # appends path to pathList with IS-NOT-A
 
         printPath(path)  # prints current successful path
-
-        tempPath.remove(currNode.name)  # remove currNode from list
 
     # traverses through all edges in knowledgeBase
     for edge in knowledgeBase:
@@ -232,24 +221,26 @@ def _searchAll(knowledgeBase, currNode, endNode, flag, tempPath, pathObjList):
         # if match is found and relation is "IS-A", with previous Relation "IS-A"
         if (edge.nodeA.name == currNode.name and edge.polarity == True and flag == 0):
 
-            tempPath.append(currNode.name)  # append to pathList
+            tempPath.append(edge)  # append to edge pathList
             currNodeClone = edge.nodeB  # set currNodeClone to nodeB
 
             _searchAll(knowledgeBase, currNodeClone, endNode, 0, tempPath, pathObjList)
 
-            tempPath.remove(currNode.name)  # remove currNode when backtracking out of the depths
+            tempPath.remove(edge)  # remove current edge when backtracking out of the depths
 
         # if match is found and relation is "IS-NOT-A", with previous Relation "IS-A"
         elif (edge.nodeA.name == currNode.name and edge.polarity == False and flag == 0):
 
-            tempPath.append(currNode.name)  # append to pathList
+            tempPath.append(edge)  # append edge to pathList
             currNodeClone = edge.nodeB  # set currNodeClone to nodeB
 
             _searchAll(knowledgeBase, currNodeClone, endNode, 1, tempPath, pathObjList)
 
-            tempPath.remove(currNode.name)  # remove currNode when backtracking of the depths
+            tempPath.remove(edge)  # remove current edge when backtracking of the depths
 
 
+'''
+# method for printing back the shortest path/s from all possible paths
 def shortestPath(pathObjList):
 
     print "Preferred by shortest distance metric:\n-------"
@@ -273,16 +264,52 @@ def shortestPath(pathObjList):
     for shortPath in shortestPaths:
         printPath(shortPath)
 
+    return shortestPaths
 
-def inferentialPath(pathList):
+# method for printing back inferential path from all possible paths
+def inferentialPath(pathObjList):
 
-    print "TO DO ;)"
+    print "\n\nPreferred by inferential distance metric:\n-------"
 
+    pathA = pathObjList[len(pathObjList) - 1]  # pathA is the last path in the currPathObjList
 
-edgeList = textToKnowledgeBase("inheritanceNetwork.txt")
-query = requestQuery()
-pathObjList = searchAll(edgeList, query)
-shortestPath(pathObjList)
-inferentialPath(pathObjList)
+    _inferentialPath(pathObjList, pathA)
 
 
+def _inferentialPath(currPathObjList, pathA):
+
+    # base case that when there is only one path left in the list print it as the preferred inferential path
+    if (len(currPathObjList) == 1):
+
+        printPath(currPathObjList[0])
+        return
+
+    # for nodes in the current path, pathA.pathList, (excluding starting node and end node)
+    for i in range(1, len(pathA.pathList) - 1):
+
+        nodeA = pathA.pathList[i]
+
+        # for pathB to compare with pathA from current path object list
+        for pathB in currPathObjList:
+
+            # if they are not the same path
+            if (pathB != pathA):
+
+                # for nodes in the secondary path, pathB.pathList, (excluding starting node and end node)
+                for j in range(1, len(pathB.pathList) - 1):
+
+                    nodeB = pathB.pathList[j]
+
+                    # if
+                    if (nodeA == nodeB)
+
+    return
+
+'''
+
+edgeList = textToKnowledgeBase("inheritanceNetwork.txt")  # converts text to knowledgeBase
+query = requestQuery()  # request user for string query then stores it in an edge object
+pathObjList = searchAll(edgeList, query)  # searches for all possible paths posed by the query
+
+# shortestPath(pathObjList)  # shows preferred path/s by shortest distance metric
+# inferentialPath(pathObjList)  # shows preferred path if any by inferential distance metric
