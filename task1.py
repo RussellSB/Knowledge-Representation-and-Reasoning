@@ -164,7 +164,6 @@ def _resolve(knowledgeBase, query):
 
                         return True  # returns True for when it backtracks
 
-
     # goes through all clauses and finds no literal matches, therefore query is not solved
     print "NOT SOLVED"
     return False
@@ -173,6 +172,3 @@ def _resolve(knowledgeBase, query):
 hcFormula = textToKnowledgeBase("clauseStatements.txt")   # stores all the clauses from "clauseStatements.txt" into hcFormula
 query = requestQuery()  # requests for user input then parses user input into a query horn clause
 _resolve(hcFormula, query)  # resolves query with knowlegeBase
-
-
-

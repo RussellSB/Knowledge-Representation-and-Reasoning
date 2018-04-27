@@ -28,8 +28,7 @@ class Edge:
         self.polarity = polarity
 
 
-# stored nodeNames rather than edges as paths because working with discrete information made things more efficient
-# class for path, stores list of nodeNames to indicate edges, and stores whether of type IS-A all throughout, or IS-NOT-A
+# class for path, stores list of edges, and stores whether of type IS-A all throughout, or IS-NOT-A
 class Path:
 
     def __init__(self, pathList, type):
@@ -179,11 +178,7 @@ def searchAll(knowledgeBase, query):
 
     pathObjList = []  # path list to store successful object paths
 
-    print "Searching for all possible paths:\n-------\n"
-
     _searchAll(knowledgeBase, currNode, endNode, flag, tempPath, pathObjList)  # calls recursive function
-
-    print "\n-------\nAll possible paths have been searched.\n\n"
 
     return pathObjList
 
@@ -202,8 +197,6 @@ def _searchAll(knowledgeBase, currNode, endNode, flag, tempPath, pathObjList):
         path = Path(succPath, True)  # sets path object to to succPath, polarity True
         pathObjList.append(path)  # appends path to pathList with IS-A
 
-        printPath(path)  # prints current successful path
-
     # base case: the last step it allows "IS-NOT-A" when flag=1
     elif(currNode.name == endNode.name and flag == 1):
 
@@ -215,8 +208,6 @@ def _searchAll(knowledgeBase, currNode, endNode, flag, tempPath, pathObjList):
 
         path = Path(succPath, False)  # sets path object to succPath, polarity False
         pathObjList.append(path)  # appends path to pathList with IS-NOT-A
-
-        printPath(path)  # prints current successful path
 
     # traverses through all edges in knowledgeBase
     for edge in knowledgeBase:
@@ -280,8 +271,6 @@ def sortByLength(objList):
 # method for printing back the shortest path/s from all possible paths
 def shortestPath(pathObjList):
 
-    print "Preferred by shortest distance metric:\n-------"
-
     shortestPaths = []  # initialized list to store shortest path/s
 
     sortedPaths = sortByLength(pathObjList)  # sorts path object list by their lengths
@@ -300,71 +289,14 @@ def shortestPath(pathObjList):
         else:
             break
 
-    # print the shortest path/s
-    for shortPath in shortestPaths:
-        printPath(shortPath)
-
     return shortestPaths
 
 
 # method for printing back inferential path from all possible paths, uses knowledgeBase to test redundancy
 def inferentialPath(pathObjList, knowledgeBase):
 
-    print "\n\nPreferred by inferential distance metric:\n-------"
-
     infPaths = pathObjList  # inferential Paths starts as pathObjList, preempted and redundant paths are then eliminated
     currQuery = Edge()  # initializes query as empty
-
-    '''
-            Firstly goes through possible paths checking for preemption.
-            This method works by eliminating the preemptive paths in infPaths.
-
-            It queries the knowledgeBase for subPaths that have an alternative path
-            to the last edge in a False path (path that have IS-NOT-A at the end.
-            
-            It then removes all the positive alternative paths, allowing for negative
-            paths with IS-NOT-A at the end to overrule their positive alternatives
-            with IS-A all throughout.
-
-    '''
-
-    # goes through paths in infPaths for removing preemptive paths
-    for path in infPaths:
-
-        print "\n+In new path"
-
-        # if path type has IS-NOT-A at the end
-        if path.type == False:
-
-            currQuery.add_A(path.pathList[-1].nodeA)  # sets nodeA as nodeA from last edge in negative pathList
-            currQuery.add_B(path.pathList[-1].nodeB)  # sets nodeB as nodeB from last edge in IS-NOT-A path
-
-            subPaths = searchAll(knowledgeBase, currQuery)  # searches for all possible subPaths alternative to this edge
-
-            # if alternative sub paths are found and are positive, eliminate them
-            if(len(subPaths) > 1):
-
-                # traverses through subPaths from the subPath list
-                for subPath in subPaths:
-
-                    # when alternative subPath is seen to be True, having IS-A all throughout
-                    if subPath.type == True:
-
-                        for subEdge in subPath.pathList:
-
-                            for path in infPaths:
-
-                                for edge in path.pathList:
-
-                                    if (subEdge == edge):
-                                        print "REMOVING"
-                                        printPath(path)
-                                        print ""
-                                        infPaths.remove(path)  # removes path that is redundant
-
-    print "==INF SURVIVORS:== after preemption check"
-    for path in infPaths:
-        printPath(path)
 
     '''
         Goes through remaining survivors from preemption check, checking for redundancy.
@@ -384,15 +316,16 @@ def inferentialPath(pathObjList, knowledgeBase):
     # goes through paths in infPaths for removing redundant paths
     for path in infPaths:
 
-        print "\n+In new path"
+        #  print "\n+In new path"
 
         currQuery.add_A(path.pathList[0].nodeA)  # sets nodeA in query to first node in paths
+        i = 1  # sets counter for going through edges to 1
+        flag = 0  # flag used to detect when the path is removed, stops looping when 1 as path is deleted
 
         # goes through edges in path list, starting from the second edge (ignores last node)
-        for i in range(1, path.len):
+        while (i < path.len and flag==0):
 
             currQuery.add_B(path.pathList[i].nodeA)  # sets nodeB as next node every iteration
-
             subPaths = searchAll(knowledgeBase, currQuery)  # returns all possible subPaths for current query
 
             # if more than one possible path is found, find redundant/shortest paths and eliminate them
@@ -400,7 +333,7 @@ def inferentialPath(pathObjList, knowledgeBase):
 
                 shortestSubs = shortestPath(subPaths)  # finds shortest path/s from possible paths and stores in list
 
-                print ""
+                #  print ""
 
                 # goes through shortest subPaths in shortestSubs list
                 for shortSub in shortestSubs:
@@ -415,18 +348,90 @@ def inferentialPath(pathObjList, knowledgeBase):
                             for edge in path.pathList:
 
                                 if (shortEdge == edge):
-                                    print "REMOVING"
-                                    printPath(path)
-                                    print ""
-                                    infPaths.remove(path)  # removes path that is redundant
+                                    #  print "REMOVING PATH"
+                                    #  printPath(path)
+                                    #  print ""
+                                    infPaths.remove(path)  # removes path with redundant edge
+                                    flag = 1  # sets flag to 1 to indicate the path's deletion
 
-    print "==INF SURVIVORS:== after redundancy check"
+            i += 1  # increments the counter
+
+    #  print "==INF SURVIVORS:== after redundancy check"
+    #  for path in infPaths:
+    #    printPath(path)
+
+    '''
+        Firstly goes through possible paths checking for preemption.
+        This method works by eliminating the preemptive paths in infPaths.
+
+        It queries the knowledgeBase for subPaths that have an alternative path
+        to the last edge in a False path (path that have IS-NOT-A at the end.
+            
+        It then removes all the positive alternative paths, allowing for negative
+        paths with IS-NOT-A at the end to overrule their positive alternatives
+        with IS-A all throughout.
+
+    '''
+
+    # goes through paths in infPaths for removing preemptive paths
     for path in infPaths:
-        printPath(path)
+
+        #  print "\n+In new path"
+
+        # if path type has IS-NOT-A at the end
+        if path.type == False:
+
+            currQuery.add_A(path.pathList[-1].nodeA)  # sets nodeA as nodeA from last edge in negative pathList
+            currQuery.add_B(path.pathList[-1].nodeB)  # sets nodeB as nodeB from last edge in IS-NOT-A path
+
+            subPaths = searchAll(knowledgeBase, currQuery)  # searches for all possible subPaths alt. to this edge
+
+            # if alternative sub paths are found and are positive, eliminate them
+            if(len(subPaths) > 1):
+
+                # traverses through subPaths from the subPath list
+                for subPath in subPaths:
+
+                    # when alternative subPath is seen to be True, having IS-A all throughout
+                    if subPath.type == True:
+
+                        for subEdge in subPath.pathList:
+
+                            for path in infPaths:
+
+                                for edge in path.pathList:
+
+                                    if (subEdge == edge):
+                                        #  print "REMOVING"
+                                        #  printPath(path)
+                                        #  print ""
+                                        infPaths.remove(path)  # removes path that is redundant
+
+    #  print "==INF SURVIVORS:== after preemption check"
+    #  for path in infPaths:
+    #    printPath(path)
+
+    return infPaths  # returns the survivors of the inferentialPaths list
 
 
 knowledgeBase = textToKnowledgeBase("inheritanceNetwork.txt")  # converts text to knowledgeBase
 query = requestQuery()  # request user for string query then stores it in an edge object
+
+
 pathObjList = searchAll(knowledgeBase, query)  # searches for all possible paths posed by the query
-shortestPath(pathObjList)  # shows preferred path/s by shortest distance metric
-inferentialPath(pathObjList, knowledgeBase)  # shows preferred path if any by inferential distance metric
+
+print "All possible paths:\n-------"  # prints all the possible paths from pathObjList
+for possiblePath in pathObjList:
+    printPath(possiblePath)
+
+shortestPathList = shortestPath(pathObjList)  # returns preferred path/s by shortest distance metric
+
+print "\n\nPreferred by shortest distance metric:\n-------"  # prints all shortest paths from shortestPathList
+for shortest in shortestPathList:
+    printPath(shortest)
+
+infPathList = inferentialPath(pathObjList, knowledgeBase)  # shows preferred path if any by inferential distance metric
+
+print "\n\nPreferred by inferential distance metric:\n-------"
+for inferential in infPathList:
+    printPath(inferential)
