@@ -2,6 +2,7 @@
 Task 2: Construction and Reasoning with Inheritence Networks
 """
 
+import random  # used for choosing random pivot in quick sort
 
 # class for node, stores name as an attribute
 class Node:
@@ -125,7 +126,10 @@ def requestQuery():
                 if(tempR == ' IS-A '):
                     queryE.polarity = True  # set polarity to True as "IS-A"
                 elif(tempR == ' IS-NOT-A '):
-                    queryE.polarity = False  # set polarity to False as "IS-NOT-A"
+
+                    # prompt user that IS-NOT-A is not valid for query
+                    print "Error: IS-NOT-A not valid for querying, set as IS-A"
+                    queryE.polarity = True  # set polarity to True as "IS-A"
 
         else:  # when another character (mostly alphanumeric)
 
@@ -238,40 +242,191 @@ def _searchAll(knowledgeBase, currNode, endNode, flag, tempPath, pathObjList):
             tempPath.remove(edge)  # remove current edge when backtracking of the depths
 
 
+# recursive method for sorting path objects by length using quick sort
+def sortByLength(objList):
+
+    # base case for when segment's length is less than or equal to one
+    if (len(objList) <= 1):
+        return objList
+
+    smaller = []  # initialized for storing the smaller segment of the list
+    equivalent = []  # initialized for storing the element at the pivot
+    greater = []  # initialized for storing the greater segment of the list
+
+    # randomly chosen pivot selected from list of paths
+    pivot = objList[random.randint(0, len(objList) - 1)]
+
+    for x in objList:
+
+        # when x is less, append to smaller segment
+        if (x.len < pivot.len):
+            smaller.append(x)
+
+        # when x is at the pivot, store element into equivalent
+        elif (x.len == pivot.len):
+            equivalent.append(x)
+
+        # when x is greater, append to greater segment
+        elif (x.len > pivot.len):
+            greater.append(x)
+
+        else:
+            print("An unknown error has occurred during sorting by Path")
+
+        # recursively calls method to work on the smaller and greater segment, then returns on backtracking
+    return sortByLength(smaller) + equivalent + sortByLength(greater)
+
+
 # method for printing back the shortest path/s from all possible paths
 def shortestPath(pathObjList):
 
     print "Preferred by shortest distance metric:\n-------"
 
-    shortestPaths = [pathObjList[0]]  # list for storing one or more paths of shortest length, starts from the first
+    shortestPaths = []  # initialized list to store shortest path/s
 
-    # traverses through paths in pathObjList starting from the second one
-    for i in range(1, len(pathObjList)):
+    sortedPaths = sortByLength(pathObjList)  # sorts path object list by their lengths
 
-        # if current path is less than previous
-        if (pathObjList[i].len < pathObjList[i-1].len):
+    shortestPaths.append(sortedPaths[0])  # appends shortest path to shortestPaths list
 
-            shortestPaths = []  # clear for new shortest length
-            shortestPaths.append(pathObjList[i])  # append new shortest path to shortestPaths list
+    # goes through paths in sortedPaths, to check for other shortestPaths (starts from i=1)
+    for i in range(1, len(sortedPaths)):
 
-        # else if current path is the same as previous
-        elif (pathObjList[i].len == pathObjList[i-1].len):
-            shortestPaths.append(pathObjList[i])  # append same length path to shortestPaths list
+        # if next path is also shortest like the previous one
+        if(sortedPaths[i].len == sortedPaths[i-1].len):
 
-    # prints all the shortest paths
+            shortestPaths.append(sortedPaths[i])  # append to list
+
+        # if not one of the shortest, stop looping and break
+        else:
+            break
+
+    # print the shortest path/s
     for shortPath in shortestPaths:
         printPath(shortPath)
 
     return shortestPaths
 
-'''
-# method for printing back inferential path from all possible paths
-def inferentialPath(pathObjList):
 
-'''
+# method for printing back inferential path from all possible paths, uses knowledgeBase to test redundancy
+def inferentialPath(pathObjList, knowledgeBase):
 
-edgeList = textToKnowledgeBase("inheritanceNetwork.txt")  # converts text to knowledgeBase
+    print "\n\nPreferred by inferential distance metric:\n-------"
+
+    infPaths = pathObjList  # inferential Paths starts as pathObjList, preempted and redundant paths are then eliminated
+    currQuery = Edge()  # initializes query as empty
+
+    '''
+            Firstly goes through possible paths checking for preemption.
+            This method works by eliminating the preemptive paths in infPaths.
+
+            It queries the knowledgeBase for subPaths that have an alternative path
+            to the last edge in a False path (path that have IS-NOT-A at the end.
+            
+            It then removes all the positive alternative paths, allowing for negative
+            paths with IS-NOT-A at the end to overrule their positive alternatives
+            with IS-A all throughout.
+
+    '''
+
+    # goes through paths in infPaths for removing preemptive paths
+    for path in infPaths:
+
+        print "\n+In new path"
+
+        # if path type has IS-NOT-A at the end
+        if path.type == False:
+
+            currQuery.add_A(path.pathList[-1].nodeA)  # sets nodeA as nodeA from last edge in negative pathList
+            currQuery.add_B(path.pathList[-1].nodeB)  # sets nodeB as nodeB from last edge in IS-NOT-A path
+
+            subPaths = searchAll(knowledgeBase, currQuery)  # searches for all possible subPaths alternative to this edge
+
+            # if alternative sub paths are found and are positive, eliminate them
+            if(len(subPaths) > 1):
+
+                # traverses through subPaths from the subPath list
+                for subPath in subPaths:
+
+                    # when alternative subPath is seen to be True, having IS-A all throughout
+                    if subPath.type == True:
+
+                        for subEdge in subPath.pathList:
+
+                            for path in infPaths:
+
+                                for edge in path.pathList:
+
+                                    if (subEdge == edge):
+                                        print "REMOVING"
+                                        printPath(path)
+                                        print ""
+                                        infPaths.remove(path)  # removes path that is redundant
+
+    print "==INF SURVIVORS:== after preemption check"
+    for path in infPaths:
+        printPath(path)
+
+    '''
+        Goes through remaining survivors from preemption check, checking for redundancy.
+        This method works by eliminating the redundant paths in infPaths.
+
+        It queries the knowledgeBase for subPaths from the beginning of each path,
+        to the next node after it, this nodeB keeps on incrementing by one to check
+        for longer subPaths each time.
+
+        When more than one possible subPath is found for the query, the shortest
+        path/s of the subPaths is/are found and are eliminated from the infPaths list
+        as they are considered redundant when compared to the other longer and therefore
+        more informative lists.
+
+    '''
+
+    # goes through paths in infPaths for removing redundant paths
+    for path in infPaths:
+
+        print "\n+In new path"
+
+        currQuery.add_A(path.pathList[0].nodeA)  # sets nodeA in query to first node in paths
+
+        # goes through edges in path list, starting from the second edge (ignores last node)
+        for i in range(1, path.len):
+
+            currQuery.add_B(path.pathList[i].nodeA)  # sets nodeB as next node every iteration
+
+            subPaths = searchAll(knowledgeBase, currQuery)  # returns all possible subPaths for current query
+
+            # if more than one possible path is found, find redundant/shortest paths and eliminate them
+            if (len(subPaths) > 1):
+
+                shortestSubs = shortestPath(subPaths)  # finds shortest path/s from possible paths and stores in list
+
+                print ""
+
+                # goes through shortest subPaths in shortestSubs list
+                for shortSub in shortestSubs:
+
+                    # goes through redundant edges in shortSub.pathList
+                    for shortEdge in shortSub.pathList:
+
+                        # goes through paths in infPaths
+                        for path in infPaths:
+
+                            # goes through edges in path.pathLists
+                            for edge in path.pathList:
+
+                                if (shortEdge == edge):
+                                    print "REMOVING"
+                                    printPath(path)
+                                    print ""
+                                    infPaths.remove(path)  # removes path that is redundant
+
+    print "==INF SURVIVORS:== after redundancy check"
+    for path in infPaths:
+        printPath(path)
+
+
+knowledgeBase = textToKnowledgeBase("inheritanceNetwork.txt")  # converts text to knowledgeBase
 query = requestQuery()  # request user for string query then stores it in an edge object
-pathObjList = searchAll(edgeList, query)  # searches for all possible paths posed by the query
+pathObjList = searchAll(knowledgeBase, query)  # searches for all possible paths posed by the query
 shortestPath(pathObjList)  # shows preferred path/s by shortest distance metric
-# inferentialPath(pathObjList)  # shows preferred path if any by inferential distance metric
+inferentialPath(pathObjList, knowledgeBase)  # shows preferred path if any by inferential distance metric
