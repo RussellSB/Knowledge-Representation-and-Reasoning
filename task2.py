@@ -230,7 +230,7 @@ def _searchAll(knowledgeBase, currNode, endNode, flag, tempPath, pathObjList):
 
             _searchAll(knowledgeBase, currNodeClone, endNode, 1, tempPath, pathObjList)
 
-            tempPath.remove(edge)  # remove current edge when backtracking of the depths
+            tempPath.remove(edge)  # remove current edge when backtracking out of the depths
 
 
 # recursive method for sorting path objects by length using quick sort
@@ -299,7 +299,10 @@ def inferentialPath(pathObjList, knowledgeBase):
     currQuery = Edge()  # initializes query as empty
 
     '''
-        Goes through remaining survivors from preemption check, checking for redundancy.
+    
+        REDUNDANCY CHECK
+    
+        Goes through all possible paths checking for redundancy.
         This method works by eliminating the redundant paths in infPaths.
 
         It queries the knowledgeBase for subPaths from the beginning of each path,
@@ -319,13 +322,20 @@ def inferentialPath(pathObjList, knowledgeBase):
         #  print "\n+In new path"
 
         currQuery.add_A(path.pathList[0].nodeA)  # sets nodeA in query to first node in paths
-        i = 1  # sets counter for going through edges to 1
+        i = 1  # sets counter for going through edges after startNode to 1
         flag = 0  # flag used to detect when the path is removed, stops looping when 1 as path is deleted
 
         # goes through edges in path list, starting from the second edge (ignores last node)
-        while (i < path.len and flag==0):
+        while (i <= path.len and flag==0):
 
-            currQuery.add_B(path.pathList[i].nodeA)  # sets nodeB as next node every iteration
+            if (i == path.len):  # when at last index
+
+                currQuery.add_B(path.pathList[i-1].nodeB)  # sets nodeB as last node in path on the last iteration
+
+            else:  # when not at last index
+
+                currQuery.add_B(path.pathList[i].nodeA)  # sets nodeB as next node every iteration
+
             subPaths = searchAll(knowledgeBase, currQuery)  # returns all possible subPaths for current query
 
             # if more than one possible path is found, find redundant/shortest paths and eliminate them
@@ -361,7 +371,10 @@ def inferentialPath(pathObjList, knowledgeBase):
     #    printPath(path)
 
     '''
-        Firstly goes through possible paths checking for preemption.
+    
+        PREEMPTION CHECK
+    
+        Goes through all paths checking for preemption.
         This method works by eliminating the preemptive paths in infPaths.
 
         It queries the knowledgeBase for subPaths that have an alternative path
