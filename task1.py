@@ -39,28 +39,26 @@ def textToKnowledgeBase(fileName):
         if not ch: break  # breaks when no longer holds true
 
         if(ch == '['):
-            queryC = HornClause()  # initialize new temporary horn clause
+            tempC = HornClause()  # initialize new temporary horn clause
             tempL = Literal()  # initialize new temporary literal
 
         elif (ch == '!'):
             tempL.polarity = False  # sets boolean value to false
 
         elif (ch == ','):
-            queryC.addLiteral(tempL)   # add finished literal to object
+            tempC.addLiteral(tempL)   # add finished literal to object
             tempL = Literal()  # initialize new temporary literal
 
         elif (ch == ']'):
-            queryC.addLiteral(tempL)  # add finished literal to object
-            formula.append(queryC)   # append finished object to list
+            tempC.addLiteral(tempL)  # add finished literal to object
+            formula.append(tempC)   # append finished object to list
 
         elif (ch == '\n'):
 
-            pass  # condition used to catch '\n' so it doesn't get detected as alphanumeric and put in name attribute
+            for i in range(len(tempC.literalList)): # loops through whole literalList of current finished clause
+                print "%s, %s"%(tempC.literalList[i].polarity,tempC.literalList[i].name)  # prints True/False, and name
 
-            for i in range(len(queryC.literalList)): # loops through whole literalList of current finished clause
-                print "%s, %s"%(queryC.literalList[i].polarity,queryC.literalList[i].name)  # prints True/False, and name
-
-            print ""  # skips line for next clause
+            print ""  # skips two lines for next clause
 
 
         elif (ch.isalpha()):
@@ -148,7 +146,7 @@ def _resolve(knowledgeBase, query):
                     # when query has one literal
                     if(len(query.literalList)==1):
 
-                        clauseClone = clause
+                        clauseClone = clause  # set clause to be passed as knowledge base clause
                         clauseClone.literalList.remove(clauseClone.literalList[-1])  # removes the last element of the clauseClone
                         _resolve(knowledgeBase, clauseClone)  # recursively calls itself with the clauseClone as a query
 
@@ -157,9 +155,8 @@ def _resolve(knowledgeBase, query):
                     # when query has more than one literal
                     elif(len(query.literalList)>1):
 
-                        clauseClone = query
-                        clauseClone.literalList.remove(
-                            clauseClone.literalList[-1])  # removes the last element of the clauseClone
+                        clauseClone = query  # set clause to be passed as query clause
+                        clauseClone.literalList.remove(clauseClone.literalList[-1])  # removes the last element of the clauseClone
                         _resolve(knowledgeBase, clauseClone)  # recursively calls itself with the clauseClone as a query
 
                         return True  # returns True for when it backtracks
@@ -169,6 +166,6 @@ def _resolve(knowledgeBase, query):
     return False
 
 
-hcFormula = textToKnowledgeBase("clauseStatements.txt")   # stores all the clauses from "clauseStatements.txt" into hcFormula
+knowledgeBase = textToKnowledgeBase("clauseStatements.txt")   # stores all the clauses from "clauseStatements.txt" into hcFormula
 query = requestQuery()  # requests for user input then parses user input into a query horn clause
-_resolve(hcFormula, query)  # resolves query with knowlegeBase
+isSolved = _resolve(knowledgeBase, query)  # resolves query with knowledgeBase, returns True or False to isSolved
