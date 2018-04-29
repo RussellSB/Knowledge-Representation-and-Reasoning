@@ -307,7 +307,7 @@ def inferentialPath(pathObjList, knowledgeBase):
 
         It queries the knowledgeBase for subPaths from the beginning of each path,
         to the next node after it, this nodeB keeps on incrementing by one to check
-        for longer subPaths each time.
+        for longer subPaths each time all the way to the endNode.
 
         When more than one possible subPath is found for the query, the shortest
         path/s of the subPaths is/are found and are eliminated from the infPaths list
